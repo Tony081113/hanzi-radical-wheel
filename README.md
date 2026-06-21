@@ -40,10 +40,10 @@ python scrape_dictionary.py --limit 80 --allow-rare
 
 ## 啟動
 
-遊戲沒有內建題庫；請先產生 `questions.json`，然後在此資料夾啟動本機伺服器讓瀏覽器讀取題庫：
+遊戲頁可直接按「重爬題目並刷新題庫」，會顯示目前的爬取進度，完成後自動載入新題庫。請使用內建的本機伺服器啟動遊戲：
 
 ```powershell
-python -m http.server 8000
+.\run_game.ps1
 ```
 
-然後開啟 `http://localhost:8000`。
+然後開啟 `http://localhost:8000`，把啟動視窗顯示的「題庫更新密鑰」貼進遊戲頁，才可使用重爬功能。密鑰每次啟動都會更新，且不會寫入檔案。

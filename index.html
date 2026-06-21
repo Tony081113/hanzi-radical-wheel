@@ -29,6 +29,18 @@
       <button id="next" type="button">換一題</button>
       <p id="status" role="status"></p>
     </section>
+
+    <section class="refresh" aria-labelledby="refreshTitle">
+      <h2 id="refreshTitle">更新題庫</h2>
+      <p>從教育部辭典重新爬取 60 題常見字題目，過程約需數分鐘。</p>
+      <label class="crawl-token-label" for="crawlToken">更新密鑰（每次啟動都不同）</label>
+      <input id="crawlToken" type="password" autocomplete="off" spellcheck="false" placeholder="從啟動視窗複製密鑰">
+      <button id="refreshQuestions" type="button">重爬題目並刷新題庫</button>
+      <div id="crawlProgress" class="crawl-progress" hidden>
+        <progress id="crawlProgressBar" max="100" value="0">0%</progress>
+        <p id="crawlStatus" role="status">準備開始更新…</p>
+      </div>
+    </section>
   </main>
   <footer>資料連結至 <a href="https://dict.revised.moe.edu.tw/" target="_blank" rel="noreferrer">教育部《重編國語辭典修訂本》</a></footer>
   <script src="game.js"></script>

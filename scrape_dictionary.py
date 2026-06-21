@@ -19,7 +19,7 @@ import unicodedata
 import io
 import zipfile
 from pathlib import Path
-from typing import Iterator
+from typing import Callable, Iterator
 from urllib.parse import parse_qs, quote, urljoin, urlparse
 
 import requests
@@ -199,6 +199,67 @@ def is_common_character(session: requests.Session, word: str, cache: dict[str, b
     return cache[word]
 
 
+def build_questions(
+    limit: int = 60,
+    max_radicals: int = 24,
+    min_parts: int = 3,
+    allow_rare: bool = False,
+    max_common_strokes: int = 18,
+    seed: int | None = None,
+    progress: Callable[[int, str], None] | None = None,
+) -> list[dict]:
+    """建立題庫，並可將 0～100 的進度傳給本機網頁介面。"""
+    report = progress or (lambda _percent, _message: None)
+    if seed is not None:
+        random.seed(seed)
+    session = requests.Session(); session.headers.update(HEADERS)
+    report(2, "正在讀取漢字構形資料…")
+    decompositions, reverse_ids = ids_map(session, ROOT / "ids.txt")
+    report(6, "正在準備常用字篩選資料…")
+    strokes = {} if allow_rare else stroke_map(session, ROOT / "unihan_strokes.json")
+    common_cache: dict[str, bool] = {}
+    report(10, "正在取得教育部部首索引…")
+    radical_pages = official_radical_pages(session, max_radicals)
+    candidates: list[str] = []
+    seen: set[str] = set()
+    total_pages = max(len(radical_pages), 1)
+    for number, page in enumerate(radical_pages, start=1):
+        report(10 + int(number / total_pages * 35), f"正在掃描部首索引（{number}/{len(radical_pages)}）…")
+        for word in words_from_radical_page(session, page):
+            if word not in seen and question_from_ids(word, decompositions.get(word, ""), min_parts, reverse_ids, decompositions):
+                seen.add(word); candidates.append(word)
+    # 先抽樣避免題目固定，再以 IDS 遞迴構形數優先，讓橋、媽等複雜字更容易入選。
+    random.shuffle(candidates)
+    candidates.sort(key=lambda w: expanded_leaf_count(parse_ids(decompositions[w])[0], decompositions), reverse=True)
+    questions = []
+    total_candidates = max(len(candidates), 1)
+    for number, word in enumerate(candidates, start=1):
+        report(45 + int(number / total_candidates * 52), f"正在查核詞條（已取得 {len(questions)}/{limit} 題）…")
+        if len(questions) >= limit:
+            break
+        question = question_from_ids(word, decompositions[word], min_parts, reverse_ids, decompositions)
+        if not question:
+            continue
+        if not allow_rare:
+            # 答案、中央部件、偏旁都要容易辨認；高筆畫字和冷僻組件均不出題。
+            parts = (word, question["base"], question["radical"])
+            if strokes.get(word, 99) > max_common_strokes:
+                continue
+            if not is_common_character(session, word, common_cache):
+                continue
+            if any(part not in FAMILIAR_RADICALS and not is_common_character(session, part, common_cache) for part in parts[1:]):
+                continue
+        url = exact_entry_url(session, word)
+        if question and url:
+            questions.append({**question, "dictionary_url": url})
+    output = ROOT / "questions.json"
+    temporary = output.with_suffix(".tmp")
+    temporary.write_text(json.dumps(questions, ensure_ascii=False, indent=2), encoding="utf-8")
+    temporary.replace(output)
+    report(100, f"完成：已更新 {len(questions)} 題題庫。")
+    return questions
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="實際爬取教育部辭典並建立 IDS 偏旁題庫")
     parser.add_argument("--limit", type=int, default=60, help="要輸出的題數（預設 60）")
@@ -208,49 +269,7 @@ def main() -> None:
     parser.add_argument("--max-common-strokes", type=int, default=18, help="非生僻模式的總筆畫上限（預設 18）")
     parser.add_argument("--seed", type=int, default=None, help="僅控制題目抽樣順序，方便重現結果")
     args = parser.parse_args()
-    if args.seed is not None:
-        random.seed(args.seed)
-
-    session = requests.Session(); session.headers.update(HEADERS)
-    decompositions, reverse_ids = ids_map(session, ROOT / "ids.txt")
-    strokes = {} if args.allow_rare else stroke_map(session, ROOT / "unihan_strokes.json")
-    common_cache: dict[str, bool] = {}
-    radical_pages = official_radical_pages(session, args.max_radicals)
-    print(f"已取得 {len(radical_pages)} 個官方部首索引頁；開始爬取候選字…")
-    candidates: list[str] = []
-    seen: set[str] = set()
-    for page in radical_pages:
-        for word in words_from_radical_page(session, page):
-            if word not in seen and question_from_ids(word, decompositions.get(word, ""), args.min_parts, reverse_ids, decompositions):
-                seen.add(word); candidates.append(word)
-    # 先抽樣避免題目固定，再以 IDS 遞迴構形數優先，讓橋、媽等複雜字更容易入選。
-    random.shuffle(candidates)
-    candidates.sort(key=lambda w: expanded_leaf_count(parse_ids(decompositions[w])[0], decompositions), reverse=True)
-    print(f"官方索引取得 {len(candidates)} 個可拆組候選字；開始逐字查核詞條…")
-
-    questions = []
-    for word in candidates:
-        if len(questions) >= args.limit:
-            break
-        question = question_from_ids(word, decompositions[word], args.min_parts, reverse_ids, decompositions)
-        if not question:
-            continue
-        if not args.allow_rare:
-            # 答案、中央部件、偏旁都要容易辨認；高筆畫字和冷僻組件均不出題。
-            parts = (word, question["base"], question["radical"])
-            if strokes.get(word, 99) > args.max_common_strokes:
-                print(f"略過高筆畫字：{word}"); continue
-            if not is_common_character(session, word, common_cache):
-                print(f"略過生僻字：{word}"); continue
-            if any(part not in FAMILIAR_RADICALS and not is_common_character(session, part, common_cache) for part in parts[1:]):
-                print(f"略過冷僻部件：{word}"); continue
-        url = exact_entry_url(session, word)
-        if question and url:
-            questions.append({**question, "dictionary_url": url})
-            print(f"[{len(questions)}/{args.limit}] {word}: {question['radical']} 在 {question['position']}")
-    output = ROOT / "questions.json"
-    output.write_text(json.dumps(questions, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"完成：{output}（{len(questions)} 題，皆由本次爬取建立）")
+    build_questions(**vars(args), progress=lambda _percent, message: print(message))
 
 
 if __name__ == "__main__":
