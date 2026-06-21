@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>偏旁組字輪盤</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="game" aria-live="polite">
+    <header>
+      <p class="eyebrow">教育部《重編國語辭典修訂本》題庫</p>
+      <h1>偏旁組字輪盤</h1>
+      <p class="instruction">用滑鼠滾輪（或 ↑ ↓ 鍵）在亮起的方向選偏旁，和中央部件組成正確的字。</p>
+    </header>
+
+    <section class="board" aria-label="組字題目">
+      <div class="wheel top" data-position="top"><span class="direction">上</span><button type="button" class="option" aria-label="上方偏旁"></button></div>
+      <div class="wheel left" data-position="left"><span class="direction">左</span><button type="button" class="option" aria-label="左方偏旁"></button></div>
+      <div class="center" aria-label="中央部件"><span id="base">青</span><small>中央部件</small></div>
+      <div class="wheel right" data-position="right"><span class="direction">右</span><button type="button" class="option" aria-label="右方偏旁"></button></div>
+      <div class="wheel bottom" data-position="bottom"><span class="direction">下</span><button type="button" class="option" aria-label="下方偏旁"></button></div>
+    </section>
+
+    <section class="controls">
+      <p id="prompt"></p>
+      <p class="preview">你組的是：<strong id="answerPreview">？</strong></p>
+      <button id="submit" class="primary" type="button">確認答案</button>
+      <button id="next" type="button">換一題</button>
+      <p id="status" role="status"></p>
+    </section>
+  </main>
+  <footer>資料連結至 <a href="https://dict.revised.moe.edu.tw/" target="_blank" rel="noreferrer">教育部《重編國語辭典修訂本》</a></footer>
+  <script src="game.js"></script>
+</body>
+</html>

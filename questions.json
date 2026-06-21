@@ -1,0 +1,422 @@
+[
+  {
+    "base": "金",
+    "radical": "𢧜",
+    "position": "right",
+    "answer": "鐵",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=2679&q=1&word=%E9%90%B5"
+  },
+  {
+    "base": "戔",
+    "radical": "金",
+    "position": "left",
+    "answer": "錢",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=5793&q=1&word=%E9%8C%A2#order2"
+  },
+  {
+    "base": "旁",
+    "radical": "金",
+    "position": "left",
+    "answer": "鎊",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=294&q=1&word=%E9%8E%8A"
+  },
+  {
+    "base": "糹",
+    "radical": "㡭",
+    "position": "right",
+    "answer": "繼",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=5486&q=1&word=%E7%B9%BC"
+  },
+  {
+    "base": "贊",
+    "radical": "金",
+    "position": "left",
+    "answer": "鑽",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=9661&q=1&word=%E9%91%BD#order1"
+  },
+  {
+    "base": "毳",
+    "radical": "木",
+    "position": "left",
+    "answer": "橇",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=6373&q=1&word=%E6%A9%87"
+  },
+  {
+    "base": "契",
+    "radical": "金",
+    "position": "left",
+    "answer": "鍥",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=6356&q=1&word=%E9%8D%A5"
+  },
+  {
+    "base": "務",
+    "radical": "雨",
+    "position": "top",
+    "answer": "霧",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=11321&q=1&word=%E9%9C%A7"
+  },
+  {
+    "base": "𣫞",
+    "radical": "金",
+    "position": "bottom",
+    "answer": "鑿",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=9513&q=1&word=%E9%91%BF#order2"
+  },
+  {
+    "base": "堯",
+    "radical": "糹",
+    "position": "left",
+    "answer": "繞",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=9214&q=1&word=%E7%B9%9E"
+  },
+  {
+    "base": "雨",
+    "radical": "辟",
+    "position": "bottom",
+    "answer": "霹",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=816&q=1&word=%E9%9C%B9"
+  },
+  {
+    "base": "金",
+    "radical": "童",
+    "position": "right",
+    "answer": "鐘",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=8164&q=1&word=%E9%90%98"
+  },
+  {
+    "base": "竟",
+    "radical": "金",
+    "position": "left",
+    "answer": "鏡",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=5977&q=1&word=%E9%8F%A1"
+  },
+  {
+    "base": "雨",
+    "radical": "辰",
+    "position": "bottom",
+    "answer": "震",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=7886&q=1&word=%E9%9C%87"
+  },
+  {
+    "base": "美",
+    "radical": "金",
+    "position": "left",
+    "answer": "鎂",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=1142&q=1&word=%E9%8E%82"
+  },
+  {
+    "base": "金",
+    "radical": "雷",
+    "position": "right",
+    "answer": "鐳",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=3242&q=1&word=%E9%90%B3"
+  },
+  {
+    "base": "金",
+    "radical": "麃",
+    "position": "right",
+    "answer": "鑣",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=455&q=1&word=%E9%91%A3"
+  },
+  {
+    "base": "淫",
+    "radical": "雨",
+    "position": "top",
+    "answer": "霪",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=11116&q=1&word=%E9%9C%AA"
+  },
+  {
+    "base": "火",
+    "radical": "堯",
+    "position": "right",
+    "answer": "燒",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=8892&q=1&word=%E7%87%92"
+  },
+  {
+    "base": "雨",
+    "radical": "歷",
+    "position": "bottom",
+    "answer": "靂",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=3486&q=1&word=%E9%9D%82"
+  },
+  {
+    "base": "韱",
+    "radical": "糹",
+    "position": "left",
+    "answer": "纖",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=7102&q=1&word=%E7%BA%96"
+  },
+  {
+    "base": "善",
+    "radical": "糹",
+    "position": "left",
+    "answer": "繕",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=8969&q=1&word=%E7%B9%95"
+  },
+  {
+    "base": "散",
+    "radical": "雨",
+    "position": "top",
+    "answer": "霰",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=7167&q=1&word=%E9%9C%B0"
+  },
+  {
+    "base": "建",
+    "radical": "金",
+    "position": "left",
+    "answer": "鍵",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=5818&q=1&word=%E9%8D%B5"
+  },
+  {
+    "base": "金",
+    "radical": "廉",
+    "position": "right",
+    "answer": "鐮",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=3611&q=1&word=%E9%90%AE"
+  },
+  {
+    "base": "戠",
+    "radical": "糹",
+    "position": "left",
+    "answer": "織",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=7506&q=1&word=%E7%B9%94"
+  },
+  {
+    "base": "妾",
+    "radical": "雨",
+    "position": "top",
+    "answer": "霎",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=8826&q=1&word=%E9%9C%8E"
+  },
+  {
+    "base": "火",
+    "radical": "戠",
+    "position": "right",
+    "answer": "熾",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=8242&q=1&word=%E7%86%BE"
+  },
+  {
+    "base": "堯",
+    "radical": "木",
+    "position": "left",
+    "answer": "橈",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=2972&q=1&word=%E6%A9%88"
+  },
+  {
+    "base": "火",
+    "radical": "暴",
+    "position": "right",
+    "answer": "爆",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=111&q=1&word=%E7%88%86#order2"
+  },
+  {
+    "base": "金",
+    "radical": "羅",
+    "position": "right",
+    "answer": "鑼",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=3811&q=1&word=%E9%91%BC"
+  },
+  {
+    "base": "糹",
+    "radical": "辱",
+    "position": "right",
+    "answer": "縟",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=9329&q=1&word=%E7%B8%9F"
+  },
+  {
+    "base": "金",
+    "radical": "票",
+    "position": "right",
+    "answer": "鏢",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=447&q=1&word=%E9%8F%A2"
+  },
+  {
+    "base": "耑",
+    "radical": "立",
+    "position": "left",
+    "answer": "端",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=2370&q=1&word=%E7%AB%AF"
+  },
+  {
+    "base": "睪",
+    "radical": "金",
+    "position": "left",
+    "answer": "鐸",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=2328&q=1&word=%E9%90%B8"
+  },
+  {
+    "base": "殹",
+    "radical": "羽",
+    "position": "bottom",
+    "answer": "翳",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=10514&q=1&word=%E7%BF%B3#order2"
+  },
+  {
+    "base": "覽",
+    "radical": "糹",
+    "position": "left",
+    "answer": "纜",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=3352&q=1&word=%E7%BA%9C"
+  },
+  {
+    "base": "木",
+    "radical": "幾",
+    "position": "right",
+    "answer": "機",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=5337&q=1&word=%E6%A9%9F"
+  },
+  {
+    "base": "而",
+    "radical": "雨",
+    "position": "top",
+    "answer": "需",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=7294&q=1&word=%E9%9C%80#order1"
+  },
+  {
+    "base": "埶",
+    "radical": "力",
+    "position": "bottom",
+    "answer": "勢",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=8784&q=1&word=%E5%8B%A2"
+  },
+  {
+    "base": "産",
+    "radical": "金",
+    "position": "left",
+    "answer": "鏟",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=8407&q=1&word=%E9%8F%9F"
+  },
+  {
+    "base": "金",
+    "radical": "辛",
+    "position": "right",
+    "answer": "鋅",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=7173&q=1&word=%E9%8B%85"
+  },
+  {
+    "base": "金",
+    "radical": "夆",
+    "position": "right",
+    "answer": "鋒",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=1739&q=1&word=%E9%8B%92"
+  },
+  {
+    "base": "謁",
+    "radical": "雨",
+    "position": "top",
+    "answer": "靄",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=10354&q=1&word=%E9%9D%84"
+  },
+  {
+    "base": "光",
+    "radical": "翟",
+    "position": "right",
+    "answer": "耀",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=11779&q=1&word=%E8%80%80#order2"
+  },
+  {
+    "base": "旁",
+    "radical": "木",
+    "position": "left",
+    "answer": "榜",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=281&q=1&word=%E6%A6%9C#order1"
+  },
+  {
+    "base": "將",
+    "radical": "金",
+    "position": "left",
+    "answer": "鏘",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=6557&q=1&word=%E9%8F%98"
+  },
+  {
+    "base": "易",
+    "radical": "金",
+    "position": "left",
+    "answer": "錫",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=6836&q=1&word=%E9%8C%AB"
+  },
+  {
+    "base": "當",
+    "radical": "金",
+    "position": "left",
+    "answer": "鐺",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=2059&q=1&word=%E9%90%BA#order1"
+  },
+  {
+    "base": "契",
+    "radical": "木",
+    "position": "left",
+    "answer": "楔",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=6938&q=1&word=%E6%A5%94#order2"
+  },
+  {
+    "base": "羊",
+    "radical": "羽",
+    "position": "right",
+    "answer": "翔",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=7215&q=1&word=%E7%BF%94"
+  },
+  {
+    "base": "金",
+    "radical": "彔",
+    "position": "right",
+    "answer": "錄",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=3773&q=1&word=%E9%8C%84"
+  },
+  {
+    "base": "埶",
+    "radical": "灬",
+    "position": "bottom",
+    "answer": "熱",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=9204&q=1&word=%E7%86%B1"
+  },
+  {
+    "base": "金",
+    "radical": "廷",
+    "position": "right",
+    "answer": "鋌",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=2279&q=1&word=%E9%8B%8C#order2"
+  },
+  {
+    "base": "廷",
+    "radical": "雨",
+    "position": "top",
+    "answer": "霆",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=2750&q=1&word=%E9%9C%86"
+  },
+  {
+    "base": "真",
+    "radical": "金",
+    "position": "left",
+    "answer": "鎮",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=7894&q=1&word=%E9%8E%AE"
+  },
+  {
+    "base": "霝",
+    "radical": "巫",
+    "position": "bottom",
+    "answer": "靈",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=3724&q=1&word=%E9%9D%88"
+  },
+  {
+    "base": "殺",
+    "radical": "金",
+    "position": "left",
+    "answer": "鎩",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=8820&q=1&word=%E9%8E%A9#order1"
+  },
+  {
+    "base": "牽",
+    "radical": "糹",
+    "position": "left",
+    "answer": "縴",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=6519&q=1&word=%E7%B8%B4"
+  },
+  {
+    "base": "羽",
+    "radical": "異",
+    "position": "bottom",
+    "answer": "翼",
+    "dictionary_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=10671&q=1&word=%E7%BF%BC"
+  }
+]

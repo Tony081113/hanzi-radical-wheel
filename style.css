@@ -1,0 +1,14 @@
+:root { font-family: "Noto Serif TC", "Microsoft JhengHei", serif; color:#2c241d; background:#f4efe7; }
+* { box-sizing:border-box; }
+body { min-height:100vh; margin:0; display:grid; place-items:center; padding:28px 16px; background:radial-gradient(circle at 50% 42%,#fffdf8 0 20%,transparent 55%),#eee5d8; }
+.game { width:min(720px,100%); text-align:center; }
+.eyebrow { margin:0; color:#966e46; font-size:.88rem; letter-spacing:.08em; }
+h1 { margin:.3rem 0; font-size:clamp(2rem,6vw,3.4rem); }
+.instruction { margin:0 auto 1.6rem; max-width:38rem; color:#665b51; }
+.board { width:min(470px,94vw); aspect-ratio:1; margin:auto; display:grid; grid-template:1fr 1fr 1fr / 1fr 1fr 1fr; align-items:center; }
+.center { grid-area:2/2; width:132px; height:132px; justify-self:center; border-radius:50%; display:grid; place-content:center; background:#392e25; color:white; box-shadow:0 12px 25px #745b4138; }
+.center span { font-size:4.2rem; line-height:1; }.center small { margin-top:.45rem; opacity:.75; }
+.wheel { display:grid; place-items:center; gap:.3rem; color:#9b7552; }.wheel.top{grid-area:1/2}.wheel.left{grid-area:2/1}.wheel.right{grid-area:2/3}.wheel.bottom{grid-area:3/2}
+.direction { font-size:.8rem; }.option { width:82px; height:82px; cursor:pointer; border:0; border-radius:22px; background:#d9c4aa; color:#2c241d; font:inherit; font-size:2.65rem; box-shadow:0 4px 0 #b99d7d; transition:.15s transform,.15s background; }.wheel.active .option { background:#e8b36c; }.option:hover,.option:focus-visible { transform:translateY(-3px); outline:3px solid #7f5837; }.wheel.inactive { opacity:.25; pointer-events:none; }
+.controls { margin-top:-.4rem; }.controls p { margin:.55rem; }.preview strong { font-size:1.55rem; }.primary, #next { margin:.35rem; padding:.72rem 1.25rem; border:0; border-radius:999px; cursor:pointer; font:inherit; }.primary { background:#8a5431; color:#fff; }.primary:hover { background:#6f3f20; }#next{background:#ded0bf;color:#36271c}#status{min-height:1.5em;font-weight:bold}.correct{color:#257148}.wrong{color:#a33d35}footer{position:fixed;bottom:10px;font-size:.78rem;color:#665b51}footer a{color:#7a4b2c}
+@media(max-width:440px){.option{width:66px;height:66px;font-size:2.15rem}.center{width:112px;height:112px}.center span{font-size:3.5rem}}
