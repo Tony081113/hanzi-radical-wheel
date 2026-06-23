@@ -1,0 +1,9 @@
+SPDX-License-Identifier: GPL-3.0-or-later
+
+This project is licensed under the GNU General Public License, version 3 or
+later.  A copy of the license is available at:
+https://www.gnu.org/licenses/gpl-3.0.html
+
+The optional SVG asset build pipeline uses KAGE/GlyphWiki-derived data. Before
+distributing generated assets, comply with the licenses and attribution terms
+of the specific GlyphWiki data dump used for the build.

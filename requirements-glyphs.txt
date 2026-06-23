@@ -1,0 +1,2 @@
+# 僅供 tools/generate_radical_svgs.py 使用；遊戲執行本身不需要這個套件。
+svgwrite==1.4.3

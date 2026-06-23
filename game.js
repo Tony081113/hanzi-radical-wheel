@@ -7,9 +7,11 @@ const RADICALS_BY_POSITION = {
 };
 const RADICAL_VARIANTS = {
   left: {水:"氵", 心:"忄", 手:"扌", 言:"訁", 示:"礻", 人:"亻", 刀:"刂", 犬:"犭", 食:"飠", 衣:"衤", 火:"灬", 糸:"糹"},
-  top: {艸:"艹"},
-  right: {}, bottom: {}
+  top: {艸:"艹", 竹:"⺮", 人:"𠆢", 爪:"爫", 网:"罒"},
+  right: {刀:"刂", 阜:"阝", 邑:"阝"},
+  bottom: {心:"㣺", 火:"灬"}
 };
+const SVG_GLYPHS = new Set(["氵", "忄", "扌", "訁", "礻", "亻", "刂", "阝", "艹", "⺮", "𠆢", "爫", "罒", "㣺", "灬", "犭", "飠", "衤", "糹", "雨"]);
 const DIRECTION_NAMES = {left:"左", right:"右", top:"上", bottom:"下"};
 let questions = [], current, selected = {}, usingFallback = false;
 let crawlTimer, nextQuestionTimer;
@@ -24,8 +26,14 @@ function setGameEnabled(enabled) { $("submit").disabled = $("next").disabled = !
 function radicalsFor(question) {
   return question.radicals || [{char:question.radical, position:question.position}];
 }
-function optionFor(char, position) {
-  return {char, display:RADICAL_VARIANTS[position]?.[char] || char, rain:position === "top" && char === "雨"};
+function optionFor(char, position, form = {}) {
+  const display = form.display || RADICAL_VARIANTS[position]?.[char] || char;
+  return {
+    char, position,
+    display,
+    asset: form.asset || (SVG_GLYPHS.has(display) ? `assets/radicals/u${display.codePointAt(0).toString(16)}.svg` : ""),
+    rain: position === "top" && char === "雨"
+  };
 }
 async function loadQuestions() {
   try {
@@ -49,10 +57,18 @@ async function loadQuestions() {
   setGameEnabled(true); nextQuestion();
   if (usingFallback) $("status").textContent = "正式題庫尚未就緒，目前使用應急題庫。";
 }
-function shuffledOptions(answer, position) {
+function shuffledOptions(answer, position, answerForm) {
   const pool = RADICALS_BY_POSITION[position] || [];
   return [...new Set([answer, ...pool.filter(x => x !== answer).sort(() => Math.random() - .5).slice(0, 4)])]
-    .sort(() => Math.random() - .5).map(char => optionFor(char, position));
+    .sort(() => Math.random() - .5).map(char => optionFor(char, position, char === answer ? answerForm : {}));
+}
+function renderOption(button, option) {
+  button.replaceChildren();
+  if (!option.asset) { button.textContent = option.display; return; }
+  const image = document.createElement("img");
+  image.src = option.asset; image.alt = option.display; image.className = "radical-svg";
+  image.addEventListener("error", () => { button.replaceChildren(option.display); }, {once:true});
+  button.append(image);
 }
 function nextQuestion() {
   clearTimeout(nextQuestionTimer); $("submit").disabled = false;
@@ -66,10 +82,12 @@ function nextQuestion() {
     const part = expected.get(wheel.dataset.position);
     const active = Boolean(part);
     wheel.classList.toggle("active", active); wheel.classList.toggle("inactive", !active);
-    const button = wheel.querySelector(".option"); button.classList.remove("rain-radical");
+    const button = wheel.querySelector(".option");
+    button.classList.remove("rain-radical", "ids-top", "ids-left", "ids-right", "ids-bottom");
     if (active) {
-      wheel.options = shuffledOptions(part.char, part.position); wheel.index = 0;
-      button.textContent = wheel.options[0].display; button.classList.toggle("rain-radical", wheel.options[0].rain);
+      wheel.options = shuffledOptions(part.char, part.position, part); wheel.index = 0;
+      renderOption(button, wheel.options[0]);
+      button.classList.add(`ids-${wheel.options[0].position}`); button.classList.toggle("rain-radical", wheel.options[0].rain);
       selected[part.position] = wheel.options[0].char;
     } else button.textContent = "—";
   });
@@ -78,7 +96,9 @@ function nextQuestion() {
 function moveWheel(wheel, amount) {
   wheel.index = (wheel.index + amount + wheel.options.length) % wheel.options.length;
   const option = wheel.options[wheel.index], button = wheel.querySelector(".option");
-  button.textContent = option.display; button.classList.toggle("rain-radical", option.rain);
+  renderOption(button, option);
+  button.classList.remove("ids-top", "ids-left", "ids-right", "ids-bottom");
+  button.classList.add(`ids-${option.position}`); button.classList.toggle("rain-radical", option.rain);
   selected[wheel.dataset.position] = option.char; $("answerPreview").textContent = "…";
 }
 document.querySelectorAll(".wheel").forEach(wheel => {

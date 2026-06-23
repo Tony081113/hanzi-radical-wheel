@@ -24,6 +24,7 @@ from urllib.parse import parse_qs, quote, urljoin, urlparse
 
 import requests
 from bs4 import BeautifulSoup
+from radical_forms import radical_form
 
 BASE_URL = "https://dict.revised.moe.edu.tw/"
 CONCISE_URL = "https://dict.concised.moe.edu.tw/"
@@ -66,8 +67,8 @@ class MoeRateLimiter:
         if self.successes % 12 == 0:
             self.delay = max(MIN_DELAY_SECONDS, self.delay - 0.05)
 
-    def back_off(self, response: requests.Response) -> None:
-        retry_after = response.headers.get("Retry-After", "")
+    def back_off(self, response: requests.Response | None = None) -> None:
+        retry_after = response.headers.get("Retry-After", "") if response is not None else ""
         try:
             server_delay = float(retry_after)
         except ValueError:
@@ -80,18 +81,25 @@ class MoeRateLimiter:
 
 def get(session: requests.Session, url: str) -> BeautifulSoup:
     limiter: MoeRateLimiter = session.moe_rate_limiter
-    for attempt in range(4):
+    last_error: Exception | None = None
+    for attempt in range(6):
         limiter.wait()
         limiter.requested()
-        response = session.get(url, timeout=30)
-        if response.status_code == 429:
+        try:
+            response = session.get(url, timeout=30)
+        except requests.RequestException as error:
+            # RemoteDisconnected、逾時、暫時 DNS 錯誤等都先退避，不直接中止整個題庫更新。
+            last_error = error
+            limiter.back_off()
+            continue
+        if response.status_code == 429 or 500 <= response.status_code < 600:
             limiter.back_off(response)
-            if attempt < 3:
-                continue
+            last_error = requests.HTTPError(f"HTTP {response.status_code}")
+            continue
         response.raise_for_status()
         limiter.succeeded()
         return BeautifulSoup(response.text, "html.parser")
-    raise RuntimeError("教育部辭典網站暫時限制請求，請稍後再試。")
+    raise RuntimeError("教育部辭典連線連續中斷，已自動退避重試 6 次；請稍後再按重爬。") from last_error
 
 
 def official_radical_pages(session: requests.Session, max_radicals: int) -> list[str]:
@@ -254,8 +262,10 @@ def question_from_ids(word: str, decomposition: str, min_parts: int, reverse_ids
     first_position, second_position = POSITION_FOR_OPERATOR[tree[0]]
     # 隨機讓其中一邊作為作答偏旁，另一邊放中央；位置由 IDS 根節點嚴格決定。
     if random.choice((True, False)):
-        return {"base": second, "radical": first, "position": first_position, "answer": word}
-    return {"base": first, "radical": second, "position": second_position, "answer": word}
+        part = radical_form(first, first_position)
+        return {"base": second, "radical": first, "position": first_position, "radicals": [part], "answer": word}
+    part = radical_form(second, second_position)
+    return {"base": first, "radical": second, "position": second_position, "radicals": [part], "answer": word}
 
 
 def leaf_paths(node, path: tuple[str, ...] = ()) -> list[tuple[str, tuple[str, ...]]]:
@@ -314,13 +324,15 @@ def multi_radical_question_from_ids(word: str, decomposition: str, min_parts: in
                 break
             radicals.append({"char": component, "position": component_path[shared]})
         if len(radicals) == 2 and len({part["position"] for part in radicals}) == 2:
-            choices.append({"base": base, "radicals": radicals, "answer": word})
+            choices.append({"base": base, "radicals": [radical_form(part["char"], part["position"]) for part in radicals], "answer": word})
     return random.choice(choices) if choices else None
 
 
-def exact_entry_url(session: requests.Session, word: str, cache: dict[str, str | None]) -> str | None:
+def exact_entry_url(session: requests.Session, word: str, cache: dict[str, str | None], persist: Callable[[], None] | None = None) -> str | None:
     if word in cache:
         return cache[word]
+    if persist:
+        persist()
     soup = get(session, urljoin(BASE_URL, "search.jsp?word=" + quote(word)))
     for link in soup.select('a[href*="dictView.jsp"]'):
         if link.get_text("", strip=True) == word:
@@ -330,10 +342,12 @@ def exact_entry_url(session: requests.Session, word: str, cache: dict[str, str |
     return cache[word]
 
 
-def is_common_character(session: requests.Session, word: str, cache: dict[str, bool]) -> bool:
+def is_common_character(session: requests.Session, word: str, cache: dict[str, bool], persist: Callable[[], None] | None = None) -> bool:
     """以教育部《國語辭典簡編本》是否收錄單字作為「非生僻」的實用門檻。"""
     if word in cache:
         return cache[word]
+    if persist:
+        persist()
     soup = get(session, urljoin(CONCISE_URL, "search.jsp?md=1&word=" + quote(word)))
     cache[word] = any(link.get_text("", strip=True) == word for link in soup.select('a[href*="dictView.jsp"]'))
     return cache[word]
@@ -346,6 +360,7 @@ def build_questions(
     allow_rare: bool = False,
     max_common_strokes: int = 18,
     multi_radical_chance: float = 0.35,
+    exact_entry_links: bool = False,
     seed: int | None = None,
     progress: Callable[[int, str], None] | None = None,
 ) -> list[dict]:
@@ -362,13 +377,14 @@ def build_questions(
     report(6, "正在準備常用字篩選資料…")
     strokes = {} if allow_rare else stroke_map(session, ROOT / "unihan_strokes.json")
     common_cache, entry_cache = load_lookup_cache()
+    persist_cache = lambda: save_lookup_cache(common_cache, entry_cache)
     report(10, "正在取得教育部部首索引…")
     radical_pages = official_radical_pages(session, max_radicals)
     candidates: list[str] = []
     seen: set[str] = set()
     total_pages = max(len(radical_pages), 1)
     for number, page in enumerate(radical_pages, start=1):
-        report(10 + int(number / total_pages * 35), f"正在掃描部首索引（{number}/{len(radical_pages)}）…")
+        report(10 + int(number / total_pages * 35), f"第 1/2 階段：掃描部首索引（{number}/{len(radical_pages)}），目標 {limit} 題…")
         for word in words_from_radical_page(session, page):
             if word not in seen and question_from_ids(word, decompositions.get(word, ""), min_parts, reverse_ids, decompositions):
                 seen.add(word); candidates.append(word)
@@ -378,7 +394,7 @@ def build_questions(
     questions = []
     total_candidates = max(len(candidates), 1)
     for number, word in enumerate(candidates, start=1):
-        report(45 + int(number / total_candidates * 52), f"正在查核詞條（已取得 {len(questions)}/{limit} 題）…")
+        report(45 + int(number / total_candidates * 52), f"第 2/2 階段：查核詞條（已取得 {len(questions)}/{limit} 題）…")
         if len(questions) >= limit:
             break
         question = None
@@ -393,11 +409,14 @@ def build_questions(
             parts = (word, question["base"], *(part["char"] for part in radical_parts))
             if strokes.get(word, 99) > max_common_strokes:
                 continue
-            if not is_common_character(session, word, common_cache):
+            if not is_common_character(session, word, common_cache, persist_cache):
                 continue
-            if any(part not in FAMILIAR_RADICALS and not is_common_character(session, part, common_cache) for part in parts[1:]):
+            if any(part not in FAMILIAR_RADICALS and not is_common_character(session, part, common_cache, persist_cache) for part in parts[1:]):
                 continue
-        url = exact_entry_url(session, word, entry_cache)
+        # 快速模式不另抓 dictView：官方搜尋頁在答對後才開啟，可省下每題一次網路請求。
+        url = exact_entry_url(session, word, entry_cache, persist_cache) if exact_entry_links else entry_cache.get(word)
+        if not url:
+            url = urljoin(BASE_URL, "search.jsp?word=" + quote(word))
         if question and url:
             questions.append({**question, "dictionary_url": url})
     output = ROOT / "questions.json"
@@ -417,6 +436,7 @@ def main() -> None:
     parser.add_argument("--allow-rare", action="store_true", help="接受未收錄於教育部《國語辭典簡編本》的生僻字")
     parser.add_argument("--max-common-strokes", type=int, default=18, help="非生僻模式的總筆畫上限（預設 18）")
     parser.add_argument("--multi-radical-chance", type=float, default=0.35, help="雙偏旁題比例（0～1，預設 0.35）")
+    parser.add_argument("--exact-entry-links", action="store_true", help="逐題查詢精確 dictView 詞條（較慢）")
     parser.add_argument("--seed", type=int, default=None, help="僅控制題目抽樣順序，方便重現結果")
     args = parser.parse_args()
     build_questions(**vars(args), progress=lambda _percent, message: print(message))

@@ -5,3 +5,5 @@ venv/
 unihan_strokes.json
 dictionary_lookup_cache.json
 questions.json
+assets/radicals/*.svg
+glyphwiki-*.txt
