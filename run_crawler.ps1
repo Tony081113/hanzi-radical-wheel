@@ -13,8 +13,15 @@ if ($scope -notmatch '^\d+$') {
 }
 
 $rare = Read-Host "接受生僻字嗎？（y/N）"
+$multi = Read-Host "雙偏旁題比例 0～1？直接按 Enter 使用 0.35"
+if ([string]::IsNullOrWhiteSpace($multi)) { $multi = '0.35' }
+if ($multi -notmatch '^(0(\.\d+)?|1(\.0+)?)$') {
+    Write-Host "請輸入 0 到 1 之間的小數。" -ForegroundColor Red
+    exit 1
+}
 $arguments = @("$PSScriptRoot\scrape_dictionary.py", '--limit', $count, '--max-radicals', $scope)
 if ($rare -match '^(y|yes|是)$') { $arguments += '--allow-rare' }
+$arguments += @('--multi-radical-chance', $multi)
 
 python @arguments
 if ($LASTEXITCODE -eq 0) {

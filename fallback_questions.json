@@ -1,0 +1,12 @@
+[
+  {"base":"木","radical":"人","position":"left","answer":"休","dictionary_url":"https://dict.revised.moe.edu.tw/search.jsp?word=%E4%BC%91"},
+  {"base":"子","radical":"女","position":"left","answer":"好","dictionary_url":"https://dict.revised.moe.edu.tw/search.jsp?word=%E5%A5%BD"},
+  {"base":"月","radical":"日","position":"left","answer":"明","dictionary_url":"https://dict.revised.moe.edu.tw/search.jsp?word=%E6%98%8E"},
+  {"base":"十","radical":"口","position":"bottom","answer":"古","dictionary_url":"https://dict.revised.moe.edu.tw/search.jsp?word=%E5%8F%A4"},
+  {"base":"化","radical":"艸","position":"top","answer":"花","dictionary_url":"https://dict.revised.moe.edu.tw/search.jsp?word=%E8%8A%B1"},
+  {"base":"女","radical":"宀","position":"top","answer":"安","dictionary_url":"https://dict.revised.moe.edu.tw/search.jsp?word=%E5%AE%89"},
+  {"base":"可","radical":"水","position":"left","answer":"河","dictionary_url":"https://dict.revised.moe.edu.tw/search.jsp?word=%E6%B2%B3"},
+  {"base":"馬","radical":"女","position":"left","answer":"媽","dictionary_url":"https://dict.revised.moe.edu.tw/search.jsp?word=%E5%AA%BD"},
+  {"base":"田","radical":"雨","position":"top","answer":"雷","dictionary_url":"https://dict.revised.moe.edu.tw/search.jsp?word=%E9%9B%B7"},
+  {"base":"五","radicals":[{"char":"言","position":"left"},{"char":"口","position":"bottom"}],"answer":"語","dictionary_url":"https://dict.revised.moe.edu.tw/search.jsp?word=%E8%AA%9E"}
+]

@@ -11,7 +11,7 @@
     <header>
       <p class="eyebrow">教育部《重編國語辭典修訂本》題庫</p>
       <h1>偏旁組字輪盤</h1>
-      <p class="instruction">用滑鼠滾輪（或 ↑ ↓ 鍵）在亮起的方向選偏旁，和中央部件組成正確的字。</p>
+      <p class="instruction">用滑鼠滾輪（或 ↑ ↓ 鍵）在亮起的方向選偏旁，和中央部件組成正確的字；部分題目需要選兩個偏旁。</p>
     </header>
 
     <section class="board" aria-label="組字題目">
@@ -27,6 +27,7 @@
       <p class="preview">你組的是：<strong id="answerPreview">？</strong></p>
       <button id="submit" class="primary" type="button">確認答案</button>
       <button id="next" type="button">換一題</button>
+      <label class="dictionary-toggle"><input id="openDictionary" type="checkbox" checked> 答對後開啟辭典頁</label>
       <p id="status" role="status"></p>
     </section>
 

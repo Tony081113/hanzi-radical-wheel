@@ -35,6 +35,25 @@ def crawl_in_background() -> None:
             state["running"] = False
 
 
+def question_bank_exists() -> bool:
+    """只有題庫檔存在且至少有一題時，才視為可直接啟動。"""
+    try:
+        import json
+        questions = json.loads((ROOT / "questions.json").read_text(encoding="utf-8"))
+        return isinstance(questions, list) and bool(questions)
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return False
+
+
+def start_initial_crawl() -> None:
+    """首次啟動的本機初始化，先提供應急題庫，不從網頁端接受請求。"""
+    with state_lock:
+        if state["running"]:
+            return
+        state.update(running=True, progress=0, message="尚無正式題庫，正在自動建立…", error=None)
+    Thread(target=crawl_in_background, daemon=True).start()
+
+
 def is_authorized() -> bool:
     """僅接受由本機遊戲頁以自訂標頭送出的當次啟動密鑰。"""
     supplied = request.headers.get("X-Crawl-Token", "")
@@ -72,4 +91,7 @@ def static_files(filename: str):
 if __name__ == "__main__":
     print("\n題庫更新密鑰（本次啟動有效，請貼到遊戲頁）：")
     print(CRAWL_AUTH_TOKEN + "\n")
+    if not question_bank_exists():
+        print("找不到正式題庫，已開始在背景建立；遊戲頁會先使用應急題庫。")
+        start_initial_crawl()
     app.run(host="127.0.0.1", port=8000, debug=False)

@@ -29,8 +29,12 @@ BASE_URL = "https://dict.revised.moe.edu.tw/"
 CONCISE_URL = "https://dict.concised.moe.edu.tw/"
 IDS_URL = "https://raw.githubusercontent.com/cjkvi/cjkvi-ids/master/ids.txt"
 UNIHAN_URL = "https://www.unicode.org/Public/UCD/latest/ucd/Unihan.zip"
-DELAY_SECONDS = 1.2
+# 教育部網站請求採單線程節流；成功一段時間後才小幅加速，429 則立刻退避。
+INITIAL_DELAY_SECONDS = 0.9
+MIN_DELAY_SECONDS = 0.7
+MAX_DELAY_SECONDS = 12.0
 ROOT = Path(__file__).parent
+CACHE_FILE = ROOT / "dictionary_lookup_cache.json"
 HEADERS = {"User-Agent": "HanziRadicalWheel/2.0 (educational local project)"}
 
 # IDS 運算子：左右、上下、外包等。遊戲只出最外層可清楚表示的左右／上下結構。
@@ -40,11 +44,54 @@ POSITION_FOR_OPERATOR = {"⿰": ("left", "right"), "⿱": ("top", "bottom")}
 FAMILIAR_RADICALS = set("一丨丶丿乙亅二人儿入八冂冖冫几凵刀力勹匕匚十卜卩厂厶又口囗土士夂夊夕大女子宀寸小尸山川工己巾干幺广廴弓彡彳心戈戶手支文斗斤方日月木止歹比毛氏气水火爪父片牙牛犬玉瓜瓦甘生用田疒癶白皮皿目矛矢石示禾穴立竹米糸羊羽老而耳舌舟艮色艸虫血行衣見角言谷豆豕貝赤走足身車辛辰邑酉里金長門隹雨青非面革音頁風飛食首香馬骨高鬼魚鳥鹿麥麻黃黑鼠鼻齊齒龍龜氵扌忄艹灬礻衤辶阝")
 
 
+class MoeRateLimiter:
+    """自適應節流：以較快但保守的速度起跑，對 429 明確退避。"""
+
+    def __init__(self) -> None:
+        self.delay = INITIAL_DELAY_SECONDS
+        self.last_request = 0.0
+        self.successes = 0
+
+    def wait(self) -> None:
+        remaining = self.delay - (time.monotonic() - self.last_request)
+        if remaining > 0:
+            time.sleep(remaining)
+
+    def requested(self) -> None:
+        self.last_request = time.monotonic()
+
+    def succeeded(self) -> None:
+        self.successes += 1
+        # 每 12 次成功請求僅縮短 0.05 秒，最低維持 0.7 秒，避免突發加速。
+        if self.successes % 12 == 0:
+            self.delay = max(MIN_DELAY_SECONDS, self.delay - 0.05)
+
+    def back_off(self, response: requests.Response) -> None:
+        retry_after = response.headers.get("Retry-After", "")
+        try:
+            server_delay = float(retry_after)
+        except ValueError:
+            server_delay = 0.0
+        self.delay = min(MAX_DELAY_SECONDS, max(self.delay * 2, server_delay, 2.0))
+        self.successes = 0
+        # 429 回應後才開始計算等待時間，確實留出冷卻空檔。
+        self.last_request = time.monotonic()
+
+
 def get(session: requests.Session, url: str) -> BeautifulSoup:
-    response = session.get(url, timeout=30)
-    response.raise_for_status()
-    time.sleep(DELAY_SECONDS)
-    return BeautifulSoup(response.text, "html.parser")
+    limiter: MoeRateLimiter = session.moe_rate_limiter
+    for attempt in range(4):
+        limiter.wait()
+        limiter.requested()
+        response = session.get(url, timeout=30)
+        if response.status_code == 429:
+            limiter.back_off(response)
+            if attempt < 3:
+                continue
+        response.raise_for_status()
+        limiter.succeeded()
+        return BeautifulSoup(response.text, "html.parser")
+    raise RuntimeError("教育部辭典網站暫時限制請求，請稍後再試。")
 
 
 def official_radical_pages(session: requests.Session, max_radicals: int) -> list[str]:
@@ -94,6 +141,35 @@ def ids_map(session: requests.Session, cache: Path) -> tuple[dict[str, str], dic
     # 讓複合子樹可還原成一個可顯示的字，例如 ⿰木(喬的 IDS) 還原為「木＋喬」。
     reverse = {ids: char for char, ids in result.items()}
     return result, reverse
+
+
+def load_lookup_cache() -> tuple[dict[str, bool], dict[str, str | None]]:
+    """讀取已確認的常見字與詞條網址，避免每次重爬都重複查同一個字。"""
+    common: dict[str, bool] = {}
+    entries: dict[str, str | None] = {}
+    if CACHE_FILE.exists():
+        try:
+            data = json.loads(CACHE_FILE.read_text(encoding="utf-8"))
+            common = {key: bool(value) for key, value in data.get("common", {}).items()}
+            entries = {key: value if isinstance(value, str) else None for key, value in data.get("entries", {}).items()}
+        except (json.JSONDecodeError, OSError):
+            pass
+    # 現有題庫本身已含官方精確網址，可直接作為第一批快取。
+    questions_file = ROOT / "questions.json"
+    if questions_file.exists():
+        try:
+            for question in json.loads(questions_file.read_text(encoding="utf-8")):
+                if question.get("answer") and question.get("dictionary_url"):
+                    entries.setdefault(question["answer"], question["dictionary_url"])
+        except (json.JSONDecodeError, OSError):
+            pass
+    return common, entries
+
+
+def save_lookup_cache(common: dict[str, bool], entries: dict[str, str | None]) -> None:
+    temporary = CACHE_FILE.with_suffix(".tmp")
+    temporary.write_text(json.dumps({"common": common, "entries": entries}, ensure_ascii=False), encoding="utf-8")
+    temporary.replace(CACHE_FILE)
 
 
 def stroke_map(session: requests.Session, cache: Path) -> dict[str, int]:
@@ -182,12 +258,76 @@ def question_from_ids(word: str, decomposition: str, min_parts: int, reverse_ids
     return {"base": first, "radical": second, "position": second_position, "answer": word}
 
 
-def exact_entry_url(session: requests.Session, word: str) -> str | None:
+def leaf_paths(node, path: tuple[str, ...] = ()) -> list[tuple[str, tuple[str, ...]]]:
+    """取得三構件字每個葉節點的位置路徑，用來推算相對於中央部件的方向。"""
+    component = simple_component(node)
+    if component:
+        return [(component, path)]
+    if not isinstance(node, tuple) or node[0] not in POSITION_FOR_OPERATOR:
+        return []
+    first_position, second_position = POSITION_FOR_OPERATOR[node[0]]
+    first, second = node[1]
+    return leaf_paths(first, path + (first_position,)) + leaf_paths(second, path + (second_position,))
+
+
+def three_part_leaf_paths(tree, decompositions: dict[str, str]) -> list[tuple[str, tuple[str, ...]]]:
+    """取得恰好三個部件；必要時只展開根節點的一個子字，避免過度拆解。"""
+    direct = leaf_paths(tree)
+    if len(direct) == 3:
+        return direct
+    if not isinstance(tree, tuple) or tree[0] not in POSITION_FOR_OPERATOR:
+        return []
+    positions = POSITION_FOR_OPERATOR[tree[0]]
+    for nested_index, nested_char in enumerate(tree[1]):
+        other_index = 1 - nested_index
+        if not simple_component(nested_char) or not simple_component(tree[1][other_index]):
+            continue
+        nested_tree, _ = parse_ids(decompositions.get(nested_char, ""))
+        nested_leaves = leaf_paths(nested_tree)
+        if len(nested_leaves) != 2:
+            continue
+        result = [(tree[1][other_index], (positions[other_index],))]
+        result.extend((component, (positions[nested_index],) + path) for component, path in nested_leaves)
+        return result
+    return []
+
+
+def multi_radical_question_from_ids(word: str, decomposition: str, min_parts: int, decompositions: dict[str, str]) -> dict | None:
+    """建立一個中央部件加兩個偏旁的題目，只採用位置清楚的三個單一構件。"""
+    tree, _ = parse_ids(decomposition)
+    if not isinstance(tree, tuple) or expanded_leaf_count(tree, decompositions) < min_parts:
+        return None
+    leaves = three_part_leaf_paths(tree, decompositions)
+    if len(leaves) != 3 or len({component for component, _path in leaves}) != 3:
+        return None
+
+    choices = []
+    for base_index, (base, base_path) in enumerate(leaves):
+        radicals = []
+        for index, (component, component_path) in enumerate(leaves):
+            if index == base_index:
+                continue
+            shared = 0
+            while shared < min(len(base_path), len(component_path)) and base_path[shared] == component_path[shared]:
+                shared += 1
+            if shared == len(component_path):
+                break
+            radicals.append({"char": component, "position": component_path[shared]})
+        if len(radicals) == 2 and len({part["position"] for part in radicals}) == 2:
+            choices.append({"base": base, "radicals": radicals, "answer": word})
+    return random.choice(choices) if choices else None
+
+
+def exact_entry_url(session: requests.Session, word: str, cache: dict[str, str | None]) -> str | None:
+    if word in cache:
+        return cache[word]
     soup = get(session, urljoin(BASE_URL, "search.jsp?word=" + quote(word)))
     for link in soup.select('a[href*="dictView.jsp"]'):
         if link.get_text("", strip=True) == word:
-            return urljoin(BASE_URL, link["href"])
-    return None
+            cache[word] = urljoin(BASE_URL, link["href"])
+            return cache[word]
+    cache[word] = None
+    return cache[word]
 
 
 def is_common_character(session: requests.Session, word: str, cache: dict[str, bool]) -> bool:
@@ -205,19 +345,23 @@ def build_questions(
     min_parts: int = 3,
     allow_rare: bool = False,
     max_common_strokes: int = 18,
+    multi_radical_chance: float = 0.35,
     seed: int | None = None,
     progress: Callable[[int, str], None] | None = None,
 ) -> list[dict]:
     """建立題庫，並可將 0～100 的進度傳給本機網頁介面。"""
     report = progress or (lambda _percent, _message: None)
+    if not 0 <= multi_radical_chance <= 1:
+        raise ValueError("multi_radical_chance 必須介於 0 與 1 之間")
     if seed is not None:
         random.seed(seed)
     session = requests.Session(); session.headers.update(HEADERS)
+    session.moe_rate_limiter = MoeRateLimiter()
     report(2, "正在讀取漢字構形資料…")
     decompositions, reverse_ids = ids_map(session, ROOT / "ids.txt")
     report(6, "正在準備常用字篩選資料…")
     strokes = {} if allow_rare else stroke_map(session, ROOT / "unihan_strokes.json")
-    common_cache: dict[str, bool] = {}
+    common_cache, entry_cache = load_lookup_cache()
     report(10, "正在取得教育部部首索引…")
     radical_pages = official_radical_pages(session, max_radicals)
     candidates: list[str] = []
@@ -237,25 +381,30 @@ def build_questions(
         report(45 + int(number / total_candidates * 52), f"正在查核詞條（已取得 {len(questions)}/{limit} 題）…")
         if len(questions) >= limit:
             break
-        question = question_from_ids(word, decompositions[word], min_parts, reverse_ids, decompositions)
+        question = None
+        if random.random() < multi_radical_chance:
+            question = multi_radical_question_from_ids(word, decompositions[word], min_parts, decompositions)
+        question = question or question_from_ids(word, decompositions[word], min_parts, reverse_ids, decompositions)
         if not question:
             continue
         if not allow_rare:
             # 答案、中央部件、偏旁都要容易辨認；高筆畫字和冷僻組件均不出題。
-            parts = (word, question["base"], question["radical"])
+            radical_parts = question.get("radicals") or [{"char": question["radical"]}]
+            parts = (word, question["base"], *(part["char"] for part in radical_parts))
             if strokes.get(word, 99) > max_common_strokes:
                 continue
             if not is_common_character(session, word, common_cache):
                 continue
             if any(part not in FAMILIAR_RADICALS and not is_common_character(session, part, common_cache) for part in parts[1:]):
                 continue
-        url = exact_entry_url(session, word)
+        url = exact_entry_url(session, word, entry_cache)
         if question and url:
             questions.append({**question, "dictionary_url": url})
     output = ROOT / "questions.json"
     temporary = output.with_suffix(".tmp")
     temporary.write_text(json.dumps(questions, ensure_ascii=False, indent=2), encoding="utf-8")
     temporary.replace(output)
+    save_lookup_cache(common_cache, entry_cache)
     report(100, f"完成：已更新 {len(questions)} 題題庫。")
     return questions
 
@@ -267,6 +416,7 @@ def main() -> None:
     parser.add_argument("--min-parts", type=int, default=3, help="遞迴字形至少包含的構件數（預設 3）")
     parser.add_argument("--allow-rare", action="store_true", help="接受未收錄於教育部《國語辭典簡編本》的生僻字")
     parser.add_argument("--max-common-strokes", type=int, default=18, help="非生僻模式的總筆畫上限（預設 18）")
+    parser.add_argument("--multi-radical-chance", type=float, default=0.35, help="雙偏旁題比例（0～1，預設 0.35）")
     parser.add_argument("--seed", type=int, default=None, help="僅控制題目抽樣順序，方便重現結果")
     args = parser.parse_args()
     build_questions(**vars(args), progress=lambda _percent, message: print(message))
